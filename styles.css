@@ -1,0 +1,391 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #2196F3;
+    --secondary-color: #FF9800;
+    --danger-color: #F44336;
+    --success-color: #4CAF50;
+    --warning-color: #FFC107;
+    --dark-bg: #1a1a1a;
+    --light-bg: #f5f5f5;
+    --text-color: #333;
+    --border-color: #ddd;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text-color);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+main {
+    padding: 30px;
+}
+
+.section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--light-bg);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.section h2 {
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    font-size: 1.5em;
+}
+
+/* الأزرار */
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #1976D2;
+}
+
+.btn-secondary {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #F57C00;
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #D32F2F;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+/* قائمة الأجهزة */
+.device-list {
+    display: grid;
+    gap: 10px;
+}
+
+.device-item {
+    background: white;
+    border: 2px solid var(--border-color);
+    padding: 15px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.device-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow);
+    background: #f9f9f9;
+}
+
+.device-info {
+    flex: 1;
+}
+
+.device-name {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--text-color);
+}
+
+.device-id {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 5px;
+    font-family: monospace;
+}
+
+.device-rssi {
+    background: var(--primary-color);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    min-width: 60px;
+    text-align: center;
+}
+
+.empty-message {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+}
+
+/* معلومات الاتصال */
+.info-box {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.info-box p {
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.status-connected {
+    color: var(--success-color);
+    font-weight: bold;
+    background: #e8f5e9;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.status-disconnected {
+    color: var(--danger-color);
+    font-weight: bold;
+    background: #ffebee;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* الخدمات والخصائص */
+.services-container {
+    display: grid;
+    gap: 15px;
+}
+
+.service-item {
+    background: white;
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.service-name {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.characteristics-list {
+    margin-left: 15px;
+}
+
+.characteristic-item {
+    background: #f9f9f9;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 4px;
+    border-left: 3px solid var(--secondary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.characteristic-name {
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.characteristic-value {
+    background: white;
+    padding: 4px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+    font-family: monospace;
+}
+
+/* إرسال البيانات */
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+#dataInput {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1em;
+    transition: border-color 0.3s ease;
+}
+
+#dataInput:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+#dataInput:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+}
+
+/* سجل الرسائل */
+.log-controls {
+    margin-bottom: 10px;
+}
+
+.message-log {
+    background: #1e1e1e;
+    color: #00ff00;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #333;
+}
+
+.log-message {
+    padding: 5px 0;
+    line-height: 1.6;
+}
+
+.log-message.system {
+    color: #00ffff;
+}
+
+.log-message.sent {
+    color: #00ff00;
+}
+
+.log-message.received {
+    color: #ffff00;
+}
+
+.log-message.error {
+    color: #ff0000;
+}
+
+/* ال��ذييل */
+footer {
+    background: #f5f5f5;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9em;
+    color: #666;
+}
+
+footer p {
+    margin: 5px 0;
+}
+
+/* التأثيرات والرسوميات */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.connecting {
+    animation: pulse 1s infinite;
+}
+
+/* التصميم المتجاوب */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.8em;
+    }
+
+    main {
+        padding: 15px;
+    }
+
+    .section {
+        padding: 15px;
+    }
+
+    .device-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .device-rssi {
+        margin-top: 10px;
+        align-self: flex-end;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .info-box p {
+        flex-direction: column;
+    }
+}

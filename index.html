@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متحكم البلوتوث منخفض الطاقة</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔵 متحكم البلوتوث منخفض الطاقة</h1>
+            <p>اتصل بأجهزة BLE واتحكم بها مباشرة من المتصفح</p>
+        </header>
+
+        <main>
+            <!-- قسم الاتصال -->
+            <section class="section">
+                <h2>الاتصال والاكتشاف</h2>
+                <div class="button-group">
+                    <button id="scanBtn" class="btn btn-primary">
+                        🔍 البحث عن الأجهزة
+                    </button>
+                    <button id="disconnectBtn" class="btn btn-danger" disabled>
+                        ❌ قطع الاتصال
+                    </button>
+                </div>
+            </section>
+
+            <!-- قسم الأجهزة المكتشفة -->
+            <section class="section">
+                <h2>الأجهزة المكتشفة</h2>
+                <div id="deviceList" class="device-list">
+                    <p class="empty-message">لم يتم اكتشاف أي أجهزة بعد...</p>
+                </div>
+            </section>
+
+            <!-- قسم المعلومات -->
+            <section class="section">
+                <h2>معلومات الاتصال</h2>
+                <div class="info-box">
+                    <p>
+                        <strong>حالة الاتصال:</strong>
+                        <span id="connectionStatus" class="status-disconnected">غير متصل</span>
+                    </p>
+                    <p>
+                        <strong>الجهاز المتصل:</strong>
+                        <span id="connectedDevice">-</span>
+                    </p>
+                    <p>
+                        <strong>عنوان MAC:</strong>
+                        <span id="deviceAddress">-</span>
+                    </p>
+                </div>
+            </section>
+
+            <!-- قسم الخدمات والخصائص -->
+            <section class="section">
+                <h2>الخدمات والخصائص</h2>
+                <div id="servicesContainer" class="services-container">
+                    <p class="empty-message">لا توجد خدمات متاحة حالياً</p>
+                </div>
+            </section>
+
+            <!-- قسم إرسال البيانات -->
+            <section class="section">
+                <h2>إرسال البيانات</h2>
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="dataInput" 
+                        placeholder="أدخل البيانات المراد إرسالها..."
+                        disabled
+                    >
+                    <button id="sendBtn" class="btn btn-secondary" disabled>
+                        📤 إرسال
+                    </button>
+                </div>
+            </section>
+
+            <!-- سجل الرسائل -->
+            <section class="section">
+                <h2>سجل الرسائل</h2>
+                <div class="log-controls">
+                    <button id="clearLogBtn" class="btn btn-small">مسح السجل</button>
+                </div>
+                <div id="messageLog" class="message-log">
+                    <p class="log-message system">جاهز للاتصال...</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>📌 ملاحظة: يعمل هذا الموقع فقط على المتصفحات التي تدعم Web Bluetooth API</p>
+            <p>المتصفحات المدعومة: Chrome, Edge, Opera, Android Chrome</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
