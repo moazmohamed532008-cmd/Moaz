@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متصل السماعات - Headphone Connector</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- الرأس -->
+        <header class="header">
+            <div class="logo">🎧</div>
+            <h1>متصل السماعات</h1>
+            <p>اتصل بسماعتك بضغطة واحدة!</p>
+        </header>
+
+        <!-- الزر الرئيسي -->
+        <main class="main">
+            <div class="card">
+                <div class="status-indicator" id="statusIndicator">
+                    <span class="dot disconnected"></span>
+                    <span id="statusText">غير متصل</span>
+                </div>
+
+                <button id="connectBtn" class="big-button">
+                    <span class="button-icon">🔍</span>
+                    <span class="button-text">ابحث عن السماعات</span>
+                </button>
+
+                <button id="disconnectBtn" class="big-button disconnect-btn" style="display: none;">
+                    <span class="button-icon">✂️</span>
+                    <span class="button-text">قطع الاتصال</span>
+                </button>
+
+                <div id="deviceInfo" class="device-info" style="display: none;">
+                    <h3>✅ متصل بـ:</h3>
+                    <p id="deviceName" class="device-name"></p>
+                </div>
+            </div>
+
+            <!-- قسم التحكم بالصوت -->
+            <div class="card control-card">
+                <h2>🔊 التحكم بالصوت</h2>
+                
+                <div class="volume-control">
+                    <label>مستوى الصوت:</label>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="50">
+                    <span id="volumeValue">50%</span>
+                </div>
+
+                <div class="button-group">
+                    <button id="playBtn" class="control-btn" disabled>
+                        ▶️ تشغيل
+                    </button>
+                    <button id="pauseBtn" class="control-btn" disabled>
+                        ⏸️ إيقاف
+                    </button>
+                </div>
+            </div>
+
+            <!-- قسم الأجهزة المتصلة -->
+            <div class="card">
+                <h2>📱 الأجهزة المتاحة</h2>
+                <div id="deviceList" class="device-list">
+                    <p class="empty">اضغط على البحث أولاً...</p>
+                </div>
+            </div>
+
+            <!-- سجل الأنشطة -->
+            <div class="card log-card">
+                <h2>📋 سجل الأنشطة</h2>
+                <div id="logBox" class="log-box">
+                    <p class="log-entry system">🟢 جاهز للاتصال</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- التذييل -->
+        <footer>
+            <p>💡 يعمل هذا الموقع على Chrome و Edge و Opera</p>
+            <p>تأكد من تفعيل Bluetooth على جهازك</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+// متغيرات عامة
+let bluetoothDevice = null;
+let bluetoothServer = null;
+let activeCharacteristics = [];
+
+// عناصر DOM
+const scanBtn = document.getElementById('scanBtn');
+const disconnectBtn = document.getElementById('disconnectBtn');
+const sendBtn = document.getElementById('sendBtn');
+const dataInput = document.getElementById('dataInput');
+const servicesContainer = document.getElementById('servicesContainer');
+const receivedData = document.getElementById('receivedData');
+const eventLog = document.getElementById('eventLog');
+const notificationsLog = document.getElementById('notificationsLog');
+const notificationsCheckbox = document.getElementById('notificationsCheckbox');
+const clearLogBtn = document.getElementById('clearLogBtn');
+const clearEventLogBtn = document.getElementById('clearEventLogBtn');
+const deviceInfo = document.getElementById('deviceInfo');
+const deviceName = document.getElementById('deviceName');
+const connectionStatus = document.getElementById('connectionStatus');
+
+// إضافة مستمعي الأحداث
+scanBtn.addEventListener('click', requestBluetoothDevice);
+disconnectBtn.addEventListener('click', disconnectDevice);
+sendBtn.addEventListener('click', sendData);
+clearLogBtn.addEventListener('click', () => {
+    receivedData.innerHTML = '';
+    logEvent('تم مسح سجل البيانات المستقبلة', 'success');
+});
+clearEventLogBtn.addEventListener('click', () => {
+    eventLog.innerHTML = '';
+});
+notificationsCheckbox.addEventListener('change', toggleNotifications);
+
+// دالة البحث عن الأجهزة والاتصال
+async function requestBluetoothDevice() {
+    try {
+        logEvent('بدء البحث عن أجهزة البلوتوث...', 'info');
+        
+        bluetoothDevice = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true,
+            optionalServices: [
+                'generic_access',
+                'generic_attribute',
+                'battery_service',
+                '180a', // Device Information Service
+                '180d'  // Heart Rate Service
+            ]
+        });
+
+        logEvent(`✓ تم اختيار الجهاز: ${bluetoothDevice.name}`, 'success');
+        deviceName.textContent = bluetoothDevice.name || 'جهاز غير معروف';
+        
+        // الاتصال بالخادم
+        await connectToDevice();
+
+    } catch (error) {
+        logEvent(`✗ خطأ في البحث: ${error.message}`, 'error');
+    }
+}
+
+// دالة الاتصال بالجهاز
+async function connectToDevice() {
+    try {
+        logEvent('جاري الاتصال بالجهاز...', 'info');
+        bluetoothServer = await bluetoothDevice.gatt.connect();
+        
+        logEvent('✓ تم الاتصال بنجاح', 'success');
+        connectionStatus.textContent = '✓ متصل';
+        connectionStatus.style.color = '#66bb6a';
+        
+        // تحديث حالة الأزرار
+        scanBtn.disabled = true;
+        disconnectBtn.disabled = false;
+        sendBtn.disabled = false;
+        dataInput.disabled = false;
+        notificationsCheckbox.disabled = false;
+        deviceInfo.classList.remove('hidden');
+        
+        // جلب الخدمات والخصائص
+        await discoverServices();
+        
+    } catch (error) {
+        logEvent(`✗ خطأ في الاتصال: ${error.message}`, 'error');
+        deviceInfo.classList.add('hidden');
+    }
+}
+
+// دالة اكتشاف الخدمات والخصائص
+async function discoverServices() {
+    try {
+        const services = await bluetoothServer.getPrimaryServices();
+        logEvent(`وجدت ${services.length} خدمة`, 'success');
+        
+        servicesContainer.innerHTML = '';
+        
+        for (const service of services) {
+            const serviceDiv = document.createElement('div');
+            serviceDiv.className = 'service-item';
+            
+            // الحصول على اسم الخدمة
+            const serviceName = getServiceName(service.uuid);
+            serviceDiv.innerHTML = `<h3>${serviceName}</h3>`;
+            
+            try {
+                const characteristics = await service.getCharacteristics();
+                logEvent(`خدمة ${serviceName}: ${characteristics.length} خصائص`, 'info');
+                
+                for (const char of characteristics) {
+                    const charName = getCharacteristicName(char.uuid);
+                    const charDiv = document.createElement('div');
+                    charDiv.className = 'characteristic-item';
+                    
+                    // الحصول على خصائص الخاصية
+                    const props = char.properties;
+                    const supportedOps = [];
+                    if (props.read) supportedOps.push('📖 قراءة');
+                    if (props.write) supportedOps.push('✏️ كتابة');
+                    if (props.notify) supportedOps.push('🔔 إشعارات');
+                    if (props.indicate) supportedOps.push('📢 إشارات');
+                    
+                    charDiv.innerHTML = `
+                        <strong>${charName}</strong><br>
+                        UUID: ${char.uuid}<br>
+                        العمليات المدعومة: ${supportedOps.join(', ') || 'لا توجد'}
+                    `;
+                    
+                    serviceDiv.appendChild(charDiv);
+                    
+                    // تخزين الخصائص القابلة للقراءة
+                    if (props.read || props.notify) {
+                        activeCharacteristics.push({
+                            characteristic: char,
+                            name: charName,
+                            uuid: char.uuid,
+                            canNotify: props.notify
+                        });
+                    }
+                }
+            } catch (error) {
+                logEvent(`خطأ في جلب خصائص الخدمة: ${error.message}`, 'error');
+            }
+            
+            servicesContainer.appendChild(serviceDiv);
+        }
+        
+    } catch (error) {
+        logEvent(`✗ خطأ في اكتشاف الخدمات: ${error.message}`, 'error');
+    }
+}
+
+// دالة إرسال البيانات
+async function sendData() {
+    const data = dataInput.value.trim();
+    
+    if (!data) {
+        logEvent('⚠️ أدخل بيانات قبل الإرسال', 'error');
+        return;
+    }
+    
+    try {
+        if (activeCharacteristics.length === 0) {
+            logEvent('⚠️ لم يتم العثور على خصائص قابلة للكتابة', 'error');
+            return;
+        }
+        
+        // استخدام أول خاصية قابلة للكتابة
+        const writeChar = activeCharacteristics.find(c => c.characteristic.properties.write);
+        
+        if (!writeChar) {
+            logEvent('⚠️ لا توجد خصائص تدعم الكتابة', 'error');
+            return;
+        }
+        
+        const encoder = new TextEncoder();
+        const dataBytes = encoder.encode(data);
+        
+        await writeChar.characteristic.writeValue(dataBytes);
+        
+        logEvent(`✓ تم إرسال: "${data}"`, 'success');
+        dataInput.value = '';
+        addToDataLog(`📤 الإرسال: ${data}`, 'sent');
+        
+    } catch (error) {
+        logEvent(`✗ خطأ في الإرسال: ${error.message}`, 'error');
+    }
+}
+
+// دالة تفعيل الإشعارات
+async function toggleNotifications(event) {
+    if (!event.target.checked) {
+        // إيقاف الإشعارات
+        for (const item of activeCharacteristics) {
+            try {
+                if (item.canNotify) {
+                    await item.characteristic.stopNotifications();
+                }
+            } catch (error) {
+                logEvent(`خطأ في إيقاف الإشعارات: ${error.message}`, 'error');
+            }
+        }
+        logEvent('✓ تم إيقاف الإشعارات', 'info');
+        return;
+    }
+    
+    // تفعيل الإشعارات
+    try {
+        for (const item of activeCharacteristics) {
+            if (item.canNotify) {
+                await item.characteristic.startNotifications();
+                
+                item.characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                    const value = event.target.value;
+                    const decoder = new TextDecoder('utf-8');
+                    const text = decoder.decode(value);
+                    
+                    addToDataLog(`📥 استقبال (${item.name}): ${text}`, 'received');
+                    addNotificationLog(`📥 ${item.name}: ${text}`);
+                });
+                
+                logEvent(`✓ تم تفعيل الإشعارات لـ: ${item.name}`, 'success');
+            }
+        }
+    } catch (error) {
+        logEvent(`✗ خطأ في تفعيل الإشعارات: ${error.message}`, 'error');
+        notificationsCheckbox.checked = false;
+    }
+}
+
+// دالة قطع الاتصال
+async function disconnectDevice() {
+    try {
+        if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+            bluetoothDevice.gatt.disconnect();
+            logEvent('✓ تم قطع الاتصال', 'success');
+            connectionStatus.textContent = '✗ غير متصل';
+            connectionStatus.style.color = '#ef5350';
+        }
+        
+        // إعادة تعيين الحالة
+        bluetoothDevice = null;
+        bluetoothServer = null;
+        activeCharacteristics = [];
+        servicesContainer.innerHTML = '<p class="placeholder">لم يتم العثور على خدمات. اتصل بجهاز أولاً.</p>';
+        
+        scanBtn.disabled = false;
+        disconnectBtn.disabled = true;
+        sendBtn.disabled = true;
+        dataInput.disabled = true;
+        notificationsCheckbox.disabled = true;
+        notificationsCheckbox.checked = false;
+        deviceInfo.classList.add('hidden');
+        
+    } catch (error) {
+        logEvent(`✗ خطأ في قطع الاتصال: ${error.message}`, 'error');
+    }
+}
+
+// دالة إضافة إلى سجل البيانات
+function addToDataLog(message, type = 'info') {
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.textContent = `[${new Date().toLocaleTimeString('ar-SA')}] ${message}`;
+    receivedData.appendChild(entry);
+    receivedData.scrollTop = receivedData.scrollHeight;
+}
+
+// دالة إضافة إلى سجل الإشعارات
+function addNotificationLog(message) {
+    const entry = document.createElement('div');
+    entry.className = 'notification-entry';
+    entry.textContent = `[${new Date().toLocaleTimeString('ar-SA')}] ${message}`;
+    notificationsLog.appendChild(entry);
+    notificationsLog.scrollTop = notificationsLog.scrollHeight;
+}
+
+// دالة تسجيل الأحداث
+function logEvent(message, type = 'info') {
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.textContent = `[${new Date().toLocaleTimeString('ar-SA')}] ${message}`;
+    eventLog.appendChild(entry);
+    eventLog.scrollTop = eventLog.scrollHeight;
+    console.log(message);
+}
+
+// دالة الحصول على اسم الخدمة
+function getServiceName(uuid) {
+    const services = {
+        '00001800-0000-1000-8000-00805f9b34fb': 'Generic Access',
+        '00001801-0000-1000-8000-00805f9b34fb': 'Generic Attribute',
+        '0000180a-0000-1000-8000-00805f9b34fb': 'Device Information',
+        '0000180d-0000-1000-8000-00805f9b34fb': 'Heart Rate',
+        '0000180f-0000-1000-8000-00805f9b34fb': 'Battery Service',
+        '00001805-0000-1000-8000-00805f9b34fb': 'Current Time Service'
+    };
+    return services[uuid] || `خدمة (${uuid.substring(0, 8)})`;
+}
+
+// دالة الحصول على اسم الخاصية
+function getCharacteristicName(uuid) {
+    const characteristics = {
+        '00002a19-0000-1000-8000-00805f9b34fb': 'Battery Level',
+        '00002a29-0000-1000-8000-00805f9b34fb': 'Manufacturer Name',
+        '00002a24-0000-1000-8000-00805f9b34fb': 'Model Number',
+        '00002a25-0000-1000-8000-00805f9b34fb': 'Serial Number',
+        '00002a37-0000-1000-8000-00805f9b34fb': 'Heart Rate Measurement'
+    };
+    return characteristics[uuid] || `خاصية (${uuid.substring(0, 8)})`;
+}
+
+// فحص دعم Web Bluetooth
+window.addEventListener('load', () => {
+    if (!navigator.bluetooth) {
+        logEvent('⚠️ متصفحك لا يدعم Web Bluetooth API', 'error');
+        scanBtn.disabled = true;
+    } else {
+        logEvent('✓ متصفحك يدعم Web Bluetooth API', 'success');
+    }
+});
